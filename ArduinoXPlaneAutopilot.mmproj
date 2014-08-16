@@ -1,0 +1,21 @@
+<mm_project serial_port="COM4" board="Arduino Mega 2560 or Mega ADK" programmer="" includePaths="" libPaths="" libs="" default="yes" useCodeAutomation="yes" linkPrintfVersion="1" serialPortSpeed="" >
+  <files>
+    <file name="ArduinoXPlaneAutopilot_main.cpp" open="yes" />
+    <file name="arduinoxplaneautopilot_main.h" open="yes" />
+    <file name="kerpid.cpp" open="yes" />
+    <file name="kerpid.h" open="yes" />
+  </files>
+  <extras>
+  </extras>
+  <externals>
+    <external name="E:\Arduino\libraries\Ethernet\Dhcp.cpp" />
+    <external name="E:\Arduino\libraries\Ethernet\Dns.cpp" />
+    <external name="E:\Arduino\libraries\Ethernet\Ethernet.cpp" />
+    <external name="E:\Arduino\libraries\Ethernet\EthernetClient.cpp" />
+    <external name="E:\Arduino\libraries\Ethernet\EthernetServer.cpp" />
+    <external name="E:\Arduino\libraries\Ethernet\EthernetUdp.cpp" />
+    <external name="E:\Arduino\libraries\Ethernet\utility\socket.cpp" />
+    <external name="E:\Arduino\libraries\Ethernet\utility\w5100.cpp" />
+    <external name="E:\Arduino\libraries\SPI\SPI.cpp" />
+  </externals>
+</mm_project>
