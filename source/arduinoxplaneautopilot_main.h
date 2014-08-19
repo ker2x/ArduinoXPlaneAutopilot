@@ -47,6 +47,10 @@ float *VVI;
 float VVIPID_In, VVIPID_Out;
 float VVIPID_Target;
 
+float *pitch, *roll;
+float rollPID_In, rollPID_Out;
+float rollPID_Target;
+
 /*
 P_Param:  the bigger the number the harder the controller pushes.
 I_Param:  the SMALLER the number (except for 0, which turns it off,)  the more quickly the controller reacts to load changes, but the greater the risk of oscillations.
@@ -58,6 +62,8 @@ KerPID speedPID(&speedPID_In, &speedPID_Out, &speedPID_Target,0.01,0.05,0.002, D
 KerPID AoAPID(&AoAPID_In, &AoAPID_Out, &AoAPID_Target, 0.6, 1.0, 0.001, DIRECT);
 
 KerPID VVIPID(&VVIPID_In, &VVIPID_Out, &VVIPID_Target, 0.005, 0.002, 0.0, DIRECT);
+
+KerPID rollPID(&rollPID_In, &rollPID_Out, &rollPID_Target, 0.005, 0.002, 0.0, DIRECT);
  
 //-------------------------------------------------------------------
  

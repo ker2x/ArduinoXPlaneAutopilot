@@ -30,16 +30,31 @@ RXBuffer :
 [61..64] : G norm
 [65..68] : G axial
 [69..72] : G side
-[73..76] : --
+[73..76] : ---
 
-[77..80] : 18L (throttle)
-[81..84] : alpha
-[85..88] : beta
-[89..112] : ...
+[77..80] : 17L (pitch/roll/heading)
+[81..84] : pitch
+[85..88] : roll
+[89..92] : hding true
+[93..96] : hding mag
+[97..100] : ---
+[101..104] : ---
+[105..108] : --- 
+[109..112] : ---
 
-[113..116] : 25L (throttle)
-[117..120] : thr1
-[121..124] : thr2
+[113..116] : 18L (AOA)
+[117..120] : alpha
+[121..124] : beta
+[125..128] : hpath
+[129..132] : vpath
+[133..136] : ---
+[137..140] : ---
+[141..144] : ---
+[145..148] : slip
+
+[149..152] : 25L (throttle)
+[153..156] : thr1
+[157..160] : thr2
 
 */
 void setup() {
@@ -91,6 +106,14 @@ void setup() {
 	memcpy(&TXBuffer[65], &fzero, sizeof(fzero));		// --
 	memcpy(&TXBuffer[69], &fzero, sizeof(fzero));		// --
 	memcpy(&TXBuffer[73], &fzero, sizeof(fzero));		// --
+	
+	// Setup RX DATA
+	speed = (float*)&RXBuffer[9];
+	VVI = (float*)&RXBuffer[53];
+	AoA = (float*)&RXBuffer[117];
+	//throttle = (float*)&RXBuffer[153];
+	pitch = (float*)&RXBuffer[81];
+	roll = (float*)&RXBuffer[85];
 
 	speedPID.SetMode(AUTOMATIC);
 	speedPID.SetOutputLimits(0.0,1.0);
@@ -100,13 +123,18 @@ void setup() {
 	VVIPID.SetMode(AUTOMATIC);
 	VVIPID.SetOutputLimits(0.0, 8.0);
 	VVIPID.SetSampleTime(10);
-	VVIPID_Target = 000.0f;
+	VVIPID_Target = 1000.0f;
 
 	
 	AoAPID.SetMode(AUTOMATIC);
 	AoAPID.SetOutputLimits(-1.0, 1.0);
 	AoAPID.SetSampleTime(10);
 	AoAPID_Target = 2.5f;
+	
+	rollPID.SetMode(AUTOMATIC);
+	rollPID.SetOutputLimits(-1.0, 1.0);
+	rollPID.SetSampleTime(10);
+	rollPID_Target = 0.0f;
 
 }
 
@@ -119,21 +147,18 @@ void loop() {
 	if(packetSize != 0) {
 		udp.read(RXBuffer, UDP_TX_PACKET_MAX_SIZE);
 
-		speed = (float*)&RXBuffer[9];
-		VVI = (float*)&RXBuffer[53];
-		AoA = (float*)&RXBuffer[81];
-		throttle = (float*)&RXBuffer[117];
 
 		if(printDebug) {
 			Serial.print("speed : "); Serial.print(*speed);
 			Serial.print(" / VVI : "); Serial.print(*VVI);
 			Serial.print(" / throttle : "); Serial.print(*throttle);
 			Serial.print(" / AoA : "); Serial.print(*AoA);
+			Serial.print(" / roll : "); Serial.print(*roll);
 			Serial.println();
 		}
 	
 		speedPID_In = *speed;
-		speedPID_Out = *throttle;	// May be useless
+		//speedPID_Out = *throttle;	// May be useless
 		speedPID.Compute();
 
 		VVIPID_In = *VVI;
@@ -142,14 +167,20 @@ void loop() {
 		AoAPID_Target = VVIPID_Out;
 		AoAPID_In = *AoA;
 		AoAPID.Compute();
-		Serial.println( VVIPID_Out);
+		//Serial.println( VVIPID_Out);
 		
+		rollPID_In = *roll;
+		rollPID.Compute();
 		
-
+		//thr 1 & 2
 		memcpy(&TXBuffer[9], &speedPID_Out, sizeof(speedPID_Out));
 		memcpy(&TXBuffer[13], &speedPID_Out, sizeof(speedPID_Out));
 		
+		//AOA
 		memcpy(&TXBuffer[45], &AoAPID_Out, sizeof(AoAPID_Out));
+
+		//Roll
+		memcpy(&TXBuffer[49], &rollPID_Out, sizeof(rollPID_Out));
 
 		if(sendPacket) {
 			udp.beginPacket(udp.remoteIP(), 49000);
