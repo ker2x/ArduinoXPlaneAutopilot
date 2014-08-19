@@ -109,83 +109,127 @@ void setup() {
 	
 	// Setup RX DATA
 	speed = (float*)&RXBuffer[9];
-	VVI = (float*)&RXBuffer[53];
-	AoA = (float*)&RXBuffer[117];
-	//throttle = (float*)&RXBuffer[153];
+	VVI   = (float*)&RXBuffer[53];
 	pitch = (float*)&RXBuffer[81];
-	roll = (float*)&RXBuffer[85];
+	roll  = (float*)&RXBuffer[85];
+	AoA   = (float*)&RXBuffer[117];
+	throttle = (float*)&RXBuffer[153];
 
+	// SPEED PID
 	speedPID.SetMode(AUTOMATIC);
 	speedPID.SetOutputLimits(0.0,1.0);
 	speedPID.SetSampleTime(10);
-	speedPID_Target = 120.0f;
 
+	// VVI PID
 	VVIPID.SetMode(AUTOMATIC);
 	VVIPID.SetOutputLimits(0.0, 8.0);
 	VVIPID.SetSampleTime(10);
-	VVIPID_Target = 1000.0f;
 
-	
+	// AoA PID
 	AoAPID.SetMode(AUTOMATIC);
 	AoAPID.SetOutputLimits(-1.0, 1.0);
 	AoAPID.SetSampleTime(10);
-	AoAPID_Target = 2.5f;
 	
+	// Roll PID
 	rollPID.SetMode(AUTOMATIC);
 	rollPID.SetOutputLimits(-1.0, 1.0);
 	rollPID.SetSampleTime(10);
+
+	// Setup Target
+	//AoAPID_Target = 2.5f;
+	speedPID_Target = 120.0f;
 	rollPID_Target = 0.0f;
+	VVIPID_Target = 0.0f;
 
 }
 
 void loop() {
 
-	int packetSize = udp.parsePacket();
+	// Debug stuff
 	bool sendPacket = true;
 	bool printDebug = true;
 
+	// Request packet
+	int packetSize = udp.parsePacket();
+
+	// If packet received
 	if(packetSize != 0) {
+	
+		// Read packet
 		udp.read(RXBuffer, UDP_TX_PACKET_MAX_SIZE);
 
-
-		if(printDebug) {
+		// Print stuff on the serial port for debug
+		debugloop++;
+		if(printDebug && (debugloop == 10)) {
 			Serial.print("speed : "); Serial.print(*speed);
 			Serial.print(" / VVI : "); Serial.print(*VVI);
 			Serial.print(" / throttle : "); Serial.print(*throttle);
 			Serial.print(" / AoA : "); Serial.print(*AoA);
 			Serial.print(" / roll : "); Serial.print(*roll);
 			Serial.println();
+			debugloop = 0;
 		}
 	
+		// Read & compute speed
 		speedPID_In = *speed;
-		//speedPID_Out = *throttle;	// May be useless
 		speedPID.Compute();
 
+		// Read & compute VVI
 		VVIPID_In = *VVI;
 		VVIPID.Compute();
 		
+		// Read & compute AoA according to VVI target
 		AoAPID_Target = VVIPID_Out;
 		AoAPID_In = *AoA;
 		AoAPID.Compute();
-		//Serial.println( VVIPID_Out);
-		
+
+		// Read & compute roll
 		rollPID_In = *roll;
 		rollPID.Compute();
 		
-		//thr 1 & 2
+		// Copy thr 1 & 2 to TX Buffer
 		memcpy(&TXBuffer[9], &speedPID_Out, sizeof(speedPID_Out));
 		memcpy(&TXBuffer[13], &speedPID_Out, sizeof(speedPID_Out));
 		
-		//AOA
+		// Copy AoA to TX Buffer
 		memcpy(&TXBuffer[45], &AoAPID_Out, sizeof(AoAPID_Out));
 
-		//Roll
+		// Copy Roll to TX Buffer
 		memcpy(&TXBuffer[49], &rollPID_Out, sizeof(rollPID_Out));
 
+		// Send packet \o/
 		if(sendPacket) {
 			udp.beginPacket(udp.remoteIP(), 49000);
 			udp.write((uint8_t*)TXBuffer, 77);
 			udp.endPacket();
 		}
+	} // End of "packet received?"
+	
+	// Read serial port for commands
+	int SCount = Serial.available();
+	if(SCount > 0) { //We got data
+		char in = Serial.read();
+		switch(in) {
+			case 'S':
+				Serial.read(); // Skip next char
+				speedPID_Target = Serial.parseFloat();
+				Serial.print("Setting speed target to : "); Serial.println(speedPID_Target);
+				break;
+			case 'V':
+				Serial.read(); // Skip next char
+				VVIPID_Target = Serial.parseFloat();
+				Serial.print("Setting VVI target to : "); Serial.println(VVIPID_Target);
+				break;
+			case 'R':
+				Serial.read(); // Skip next char
+				rollPID_Target = Serial.parseFloat();
+				Serial.print("Setting roll target to : "); Serial.println(rollPID_Target);
+				break;
+		}
+		
+		
 	}
+	
 }
+
+

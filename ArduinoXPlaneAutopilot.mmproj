@@ -2,8 +2,8 @@
   <files>
     <file name="ArduinoXPlaneAutopilot_main.cpp" open="yes" />
     <file name="arduinoxplaneautopilot_main.h" open="yes" />
-    <file name="kerpid.cpp" open="yes" />
-    <file name="kerpid.h" open="yes" />
+    <file name="kerpid.cpp" open="no" />
+    <file name="kerpid.h" open="no" />
   </files>
   <extras>
   </extras>

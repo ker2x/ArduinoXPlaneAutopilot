@@ -25,6 +25,9 @@
 #define UDP_TX_PACKET_MAX_SIZE 1024
 char RXBuffer[UDP_TX_PACKET_MAX_SIZE];
 char TXBuffer[UDP_TX_PACKET_MAX_SIZE];
+
+char SBuffer[36]; // Receive buffer for serial port
+int debugloop = 0;
  
 EthernetClient ethernet;
 EthernetUDP udp;
