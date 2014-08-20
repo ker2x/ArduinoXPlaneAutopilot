@@ -136,7 +136,7 @@ void setup() {
 
 	// ALT PID
 	altPID.SetMode(MANUAL);
-	altPID.SetOutputLimits(-1000.0, 1000.0);
+	altPID.SetOutputLimits(-2000.0, 2000.0);
 	altPID.SetSampleTime(10);
 
 	// VVI PID
@@ -160,7 +160,7 @@ void setup() {
 
 	// Setup Target
 	//AoAPID_Target = 2.5f;
-	speedPID_Target = 120.0f;
+	speedPID_Target = 90.0f;
 	rollPID_Target = 0.0f;
 	VVIPID_Target = 0.0f;
 	altPID_Target = 5000.0f;
@@ -188,11 +188,13 @@ void loop() {
 		
 		// Read & compute VVI
 		altPID_In = *alt;
-		altPID.Compute();
 
 		// Read & compute VVI
 		if(CLIMB_MODE == CLIMB_ALT) {
+			altPID.Compute();
 			VVIPID_Target = altPID_Out;
+			//Serial.println(altPID_Out);
+			//Serial.println();
 		}
 		VVIPID_In = *VVI;
 		VVIPID.Compute();
@@ -213,7 +215,7 @@ void loop() {
 		memcpy(&TXBuffer[9], &speedPID_Out, sizeof(speedPID_Out));
 		memcpy(&TXBuffer[13], &speedPID_Out, sizeof(speedPID_Out));
 		
-		// Copy AoA to TX Buffer
+		// Copy pitch to TX Buffer
 		memcpy(&TXBuffer[45], &VVIPID_Out, sizeof(VVIPID_Out));
 
 		// Copy Roll to TX Buffer
@@ -236,9 +238,8 @@ void loop() {
 			Serial.print(" / roll : "); Serial.print(*roll);
 			Serial.print(" / heading : "); Serial.print(*hding);
 			Serial.print(" / alt : "); Serial.print(*alt);
+			Serial.print(" / out : "); Serial.print(VVIPID_Out);
 			Serial.println();
-			//Serial.println(altPID_Out);
-			//Serial.println();
 			debugloop = 0;
 		}
 		
@@ -269,14 +270,15 @@ void loop() {
 			case 'A':
 				Serial.read(); // Skip next char
 				altPID_Target = Serial.parseFloat();
-				VVIPID_Target = altPID_Out;
 				altPID.SetMode(AUTOMATIC);
 				altPID.Compute();
+				VVIPID_Target = altPID_Out;
 				CLIMB_MODE = CLIMB_ALT;
 				Serial.print("Setting alt target to : "); Serial.println(altPID_Target);
 				break;
 			//case 'H':
 			//	Serial.read();
+			// [ (Heading_target - (Heading_actual + 180)) MOD 360 ] -180
 				//float v = Serial.parseFloat();
 				//float diff = v - *hding;
 				//if diff > 180 then diff -= 360

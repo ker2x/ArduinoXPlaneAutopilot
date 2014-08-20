@@ -152,7 +152,7 @@ void KerPID::SetMode(int Mode)
  ******************************************************************************/ 
 void KerPID::Initialize()
 {
-   ITerm = *myOutput;
+   ITerm = 0.0f; //*myOutput;
    lastInput = *myInput;
    if(ITerm > outMax) ITerm = outMax;
    else if(ITerm < outMin) ITerm = outMin;
@@ -185,3 +185,5 @@ float KerPID::GetKi(){ return  dispKi;}
 float KerPID::GetKd(){ return  dispKd;}
 int KerPID::GetMode(){ return  inAuto ? AUTOMATIC : MANUAL;}
 int KerPID::GetDirection(){ return controllerDirection;}
+
+void KerPID::ResetI() { ITerm = 0.0f; }

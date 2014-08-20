@@ -51,7 +51,7 @@ class KerPID
     void SetSampleTime(int);              // * sets the frequency, in Milliseconds, with which 
                                           //   the PID calculation is performed.  default is 100
 										  
-										  
+	void ResetI();
 										  
   //Display functions ****************************************************************
 	float GetKp();						  // These functions query the pid for interal values.
