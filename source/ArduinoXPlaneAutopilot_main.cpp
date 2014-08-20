@@ -52,9 +52,20 @@ RXBuffer :
 [141..144] : ---
 [145..148] : slip
 
-[149..152] : 25L (throttle)
-[153..156] : thr1
-[157..160] : thr2
+[149..152] : 20L (lat/lon/alt)
+[153..156] : lat deg
+[157..160] : lon deg
+[161..164] : alt ftmsl
+[165..168] : alt ftagl
+[169..172] : on runwy
+[173..176] : alt ind
+[177..180] : lat south
+[181..184] : lon west
+
+[185..188] : 25L (thr)
+[189..192] : thr 1
+[193..196] : thr 2
+
 
 */
 void setup() {
@@ -112,34 +123,47 @@ void setup() {
 	VVI   = (float*)&RXBuffer[53];
 	pitch = (float*)&RXBuffer[81];
 	roll  = (float*)&RXBuffer[85];
+	hding = (float*)&RXBuffer[93];
 	AoA   = (float*)&RXBuffer[117];
-	throttle = (float*)&RXBuffer[153];
+	alt   = (float*)&RXBuffer[173];
+	throttle = (float*)&RXBuffer[189];
+	
 
 	// SPEED PID
 	speedPID.SetMode(AUTOMATIC);
 	speedPID.SetOutputLimits(0.0,1.0);
 	speedPID.SetSampleTime(10);
 
+	// ALT PID
+	altPID.SetMode(MANUAL);
+	altPID.SetOutputLimits(-1000.0, 1000.0);
+	altPID.SetSampleTime(10);
+
 	// VVI PID
 	VVIPID.SetMode(AUTOMATIC);
-	VVIPID.SetOutputLimits(0.0, 8.0);
+	VVIPID.SetOutputLimits(-1.0, 1.0);
 	VVIPID.SetSampleTime(10);
 
 	// AoA PID
-	AoAPID.SetMode(AUTOMATIC);
-	AoAPID.SetOutputLimits(-1.0, 1.0);
-	AoAPID.SetSampleTime(10);
+	//AoAPID.SetMode(AUTOMATIC);
+	//AoAPID.SetOutputLimits(-1.0, 1.0);
+	//AoAPID.SetSampleTime(10);
 	
 	// Roll PID
 	rollPID.SetMode(AUTOMATIC);
 	rollPID.SetOutputLimits(-1.0, 1.0);
 	rollPID.SetSampleTime(10);
 
+	hdingPID.SetMode(AUTOMATIC);
+	hdingPID.SetOutputLimits(-30.0, 30.0);
+	hdingPID.SetSampleTime(10);
+
 	// Setup Target
 	//AoAPID_Target = 2.5f;
 	speedPID_Target = 120.0f;
 	rollPID_Target = 0.0f;
 	VVIPID_Target = 0.0f;
+	altPID_Target = 5000.0f;
 
 }
 
@@ -158,30 +182,28 @@ void loop() {
 		// Read packet
 		udp.read(RXBuffer, UDP_TX_PACKET_MAX_SIZE);
 
-		// Print stuff on the serial port for debug
-		debugloop++;
-		if(printDebug && (debugloop == 10)) {
-			Serial.print("speed : "); Serial.print(*speed);
-			Serial.print(" / VVI : "); Serial.print(*VVI);
-			Serial.print(" / throttle : "); Serial.print(*throttle);
-			Serial.print(" / AoA : "); Serial.print(*AoA);
-			Serial.print(" / roll : "); Serial.print(*roll);
-			Serial.println();
-			debugloop = 0;
-		}
-	
 		// Read & compute speed
 		speedPID_In = *speed;
 		speedPID.Compute();
+		
+		// Read & compute VVI
+		altPID_In = *alt;
+		altPID.Compute();
 
 		// Read & compute VVI
+		if(CLIMB_MODE == CLIMB_ALT) {
+			VVIPID_Target = altPID_Out;
+		}
 		VVIPID_In = *VVI;
 		VVIPID.Compute();
-		
+
+
+			
 		// Read & compute AoA according to VVI target
-		AoAPID_Target = VVIPID_Out;
-		AoAPID_In = *AoA;
-		AoAPID.Compute();
+		//AoAPID_Target = VVIPID_Out;
+		//AoAPID_In = *AoA;
+		//AoAPID.Compute();
+		
 
 		// Read & compute roll
 		rollPID_In = *roll;
@@ -192,7 +214,7 @@ void loop() {
 		memcpy(&TXBuffer[13], &speedPID_Out, sizeof(speedPID_Out));
 		
 		// Copy AoA to TX Buffer
-		memcpy(&TXBuffer[45], &AoAPID_Out, sizeof(AoAPID_Out));
+		memcpy(&TXBuffer[45], &VVIPID_Out, sizeof(VVIPID_Out));
 
 		// Copy Roll to TX Buffer
 		memcpy(&TXBuffer[49], &rollPID_Out, sizeof(rollPID_Out));
@@ -203,6 +225,23 @@ void loop() {
 			udp.write((uint8_t*)TXBuffer, 77);
 			udp.endPacket();
 		}
+		
+		// Print stuff on the serial port for debug
+		debugloop++;
+		if(printDebug && (debugloop == 10)) {
+			Serial.print("speed : "); Serial.print(*speed);
+			Serial.print(" / VVI : "); Serial.print(*VVI);
+			Serial.print(" / throttle : "); Serial.print(*throttle);
+			Serial.print(" / AoA : "); Serial.print(*AoA);
+			Serial.print(" / roll : "); Serial.print(*roll);
+			Serial.print(" / heading : "); Serial.print(*hding);
+			Serial.print(" / alt : "); Serial.print(*alt);
+			Serial.println();
+			//Serial.println(altPID_Out);
+			//Serial.println();
+			debugloop = 0;
+		}
+		
 	} // End of "packet received?"
 	
 	// Read serial port for commands
@@ -218,6 +257,8 @@ void loop() {
 			case 'V':
 				Serial.read(); // Skip next char
 				VVIPID_Target = Serial.parseFloat();
+				altPID.SetMode(MANUAL);
+				CLIMB_MODE = CLIMB_VVI;
 				Serial.print("Setting VVI target to : "); Serial.println(VVIPID_Target);
 				break;
 			case 'R':
@@ -225,6 +266,26 @@ void loop() {
 				rollPID_Target = Serial.parseFloat();
 				Serial.print("Setting roll target to : "); Serial.println(rollPID_Target);
 				break;
+			case 'A':
+				Serial.read(); // Skip next char
+				altPID_Target = Serial.parseFloat();
+				VVIPID_Target = altPID_Out;
+				altPID.SetMode(AUTOMATIC);
+				altPID.Compute();
+				CLIMB_MODE = CLIMB_ALT;
+				Serial.print("Setting alt target to : "); Serial.println(altPID_Target);
+				break;
+			//case 'H':
+			//	Serial.read();
+				//float v = Serial.parseFloat();
+				//float diff = v - *hding;
+				//if diff > 180 then diff -= 360
+				//else if diff < -180 then diff += 360
+				// 0 > diff > 180 = turn right
+				// 0 < diff < -180 = turl left
+				// turn by diff°
+				//heading_diff = Serial.parseFloat() - (*hding - 180);
+				
 		}
 		
 		

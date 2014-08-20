@@ -38,13 +38,15 @@ float fzero = 0.0F;
 
 long idx_joy = 8L;
 long idx_thr = 25L;
+
 float *speed, *throttle;
 float speedPID_In, speedPID_Out;
 float speedPID_Target;
 
 float *AoA, *elev;
-float AoAPID_In, AoAPID_Out;
-float AoAPID_Target;
+//float AoAPID_In, AoAPID_Out;
+//float AoAPID_Target;
+
 
 float *VVI;
 float VVIPID_In, VVIPID_Out;
@@ -54,19 +56,33 @@ float *pitch, *roll;
 float rollPID_In, rollPID_Out;
 float rollPID_Target;
 
-/*
-P_Param:  the bigger the number the harder the controller pushes.
-I_Param:  the SMALLER the number (except for 0, which turns it off,)  the more quickly the controller reacts to load changes, but the greater the risk of oscillations.
-D_Param: the bigger the number  the more the controller dampens oscillations (to the point where performance can be hindered)
-*/
+float *hding;
+float hding_v, hding_cv, hding_diff;
+float hdingPID_In, hdingPID_Out;
+float hdingPID_Target;
+
+float *alt;
+float altPID_In, altPID_Out;
+float altPID_Target;
+
+typedef enum {
+	CLIMB_VVI,
+	CLIMB_ALT
+} CLIMB_MODE_E;
+	
+CLIMB_MODE_E CLIMB_MODE = CLIMB_VVI;
 
 KerPID speedPID(&speedPID_In, &speedPID_Out, &speedPID_Target,0.01,0.05,0.002, DIRECT);
 
-KerPID AoAPID(&AoAPID_In, &AoAPID_Out, &AoAPID_Target, 0.6, 1.0, 0.001, DIRECT);
+//KerPID AoAPID(&AoAPID_In, &AoAPID_Out, &AoAPID_Target, 0.5, 1.0, 0.001, DIRECT);
 
-KerPID VVIPID(&VVIPID_In, &VVIPID_Out, &VVIPID_Target, 0.005, 0.002, 0.0, DIRECT);
+KerPID altPID(&altPID_In, &altPID_Out, &altPID_Target, 2.0, 0.01, 0.1, DIRECT);
 
-KerPID rollPID(&rollPID_In, &rollPID_Out, &rollPID_Target, 0.005, 0.002, 0.0, DIRECT);
+KerPID VVIPID(&VVIPID_In, &VVIPID_Out, &VVIPID_Target, 0.0005, 0.0005, 0.0001, DIRECT);
+
+KerPID rollPID(&rollPID_In, &rollPID_Out, &rollPID_Target, 0.006, 0.003, 0.00001, DIRECT);
+
+KerPID hdingPID(&hdingPID_In, &hdingPID_Out, &hdingPID_Target, 0.006, 0.0, 0.0, DIRECT);
  
 //-------------------------------------------------------------------
  
