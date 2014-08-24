@@ -323,6 +323,12 @@ void loop() {
 				udp.write((uint8_t*)CharBuffer, 6);
 				udp.endPacket();
 				break;
+			case 'B':	// Toggle Break
+				CharBuffer[5] = 'b';
+				udp.beginPacket(udp.remoteIP(), 49000);
+				udp.write((uint8_t*)CharBuffer, 6);
+				udp.endPacket();
+				break;
 		} // end of switch/case
 	} // end of if(serial data)
 } // end of loop

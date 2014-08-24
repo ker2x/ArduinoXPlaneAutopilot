@@ -21,7 +21,7 @@
  
 //-------------------------------------------------------------------
  
-// Put yout declarations here
+// Put your declarations here
 #define UDP_TX_PACKET_MAX_SIZE 1024
 char RXBuffer[UDP_TX_PACKET_MAX_SIZE];
 char TXBuffer[UDP_TX_PACKET_MAX_SIZE];
@@ -80,11 +80,11 @@ CLIMB_MODE_E CLIMB_MODE = CLIMB_VVI;
 /* VALUES FOR C337 SKYMASTER  */
 KerPID speedPID(&speedPID_In, &speedPID_Out, &speedPID_Target,0.01,0.05,0.002, DIRECT);
 //KerPID AoAPID(&AoAPID_In, &AoAPID_Out, &AoAPID_Target, 0.5, 1.0, 0.001, DIRECT);
-KerPID altPID(&altPID_In, &altPID_Out, &altPID_Target, 2.0, 0.01, 0.01, DIRECT);
-KerPID VVIPID(&VVIPID_In, &VVIPID_Out, &VVIPID_Target, 0.0005, 0.0005, 0.0001, DIRECT);
-KerPID rollPID(&rollPID_In, &rollPID_Out, &rollPID_Target, 0.006, 0.003, 0.002, DIRECT);
+KerPID altPID(&altPID_In, &altPID_Out, &altPID_Target, 2.0, 0.01, 0.001, DIRECT);
+KerPID VVIPID(&VVIPID_In, &VVIPID_Out, &VVIPID_Target, 0.0005, 0.0004, 0.0001, DIRECT);
+KerPID rollPID(&rollPID_In, &rollPID_Out, &rollPID_Target, 0.008, 0.004, 0.002, DIRECT);
 KerPID hdingPID(&hdingPID_In, &hdingPID_Out, &hdingPID_Target, 0.2, 0.001, 0.0005, DIRECT);
-KerPID slipPID(&slipPID_In, &slipPID_Out, &slipPID_Target, 0.2, 0.1, 0.01, DIRECT);
+KerPID slipPID(&slipPID_In, &slipPID_Out, &slipPID_Target, 0.1, 0.05, 0.005, DIRECT);
 
 
 /* VALUES FOR C172SP 
