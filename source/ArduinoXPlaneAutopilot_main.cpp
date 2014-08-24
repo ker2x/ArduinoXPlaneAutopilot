@@ -118,6 +118,15 @@ void setup() {
 	memcpy(&TXBuffer[69], &fzero, sizeof(fzero));		// --
 	memcpy(&TXBuffer[73], &fzero, sizeof(fzero));		// --
 	
+	
+	// Setup char buffer (to send keypress)
+	CharBuffer[0] = 'C';
+	CharBuffer[1] = 'H';
+	CharBuffer[2] = 'A';
+	CharBuffer[3] = 'R';
+	CharBuffer[4] = (char)0;
+	
+	
 	// Setup RX DATA
 	speed = (float*)&RXBuffer[9];
 	VVI   = (float*)&RXBuffer[53];
@@ -154,9 +163,11 @@ void setup() {
 	rollPID.SetOutputLimits(-1.0, 1.0);
 	rollPID.SetSampleTime(10);
 
+	// Heading PID
 	hdingPID.SetMode(AUTOMATIC);
 	hdingPID.SetOutputLimits(-30.0, 30.0);
 	hdingPID.SetSampleTime(10);
+	hdingPID.SetControllerDirection(REVERSE);
 
 	// Setup Target
 	//AoAPID_Target = 2.5f;
@@ -164,8 +175,11 @@ void setup() {
 	rollPID_Target = 0.0f;
 	VVIPID_Target = 0.0f;
 	altPID_Target = 5000.0f;
+	hdingPID_Target = 0.0f;
+	hding_vt = 320.0f;
 
 }
+
 
 void loop() {
 
@@ -186,10 +200,9 @@ void loop() {
 		speedPID_In = *speed;
 		speedPID.Compute();
 		
-		// Read & compute VVI
-		altPID_In = *alt;
 
 		// Read & compute VVI
+		altPID_In = *alt;
 		if(CLIMB_MODE == CLIMB_ALT) {
 			altPID.Compute();
 			VVIPID_Target = altPID_Out;
@@ -199,14 +212,18 @@ void loop() {
 		VVIPID_In = *VVI;
 		VVIPID.Compute();
 
-
+		// Read & compute heading
+		hding_v = fmod(hding_vt - *hding + 180.0f, 360.0f)  - 180.0f;
+		if(hding_v < -180) hding_v += 360;
+		hdingPID_In = hding_v;
+		hdingPID.Compute();
+		rollPID_Target = hdingPID_Out;
 			
 		// Read & compute AoA according to VVI target
 		//AoAPID_Target = VVIPID_Out;
 		//AoAPID_In = *AoA;
 		//AoAPID.Compute();
 		
-
 		// Read & compute roll
 		rollPID_In = *roll;
 		rollPID.Compute();
@@ -238,37 +255,39 @@ void loop() {
 			Serial.print(" / roll : "); Serial.print(*roll);
 			Serial.print(" / heading : "); Serial.print(*hding);
 			Serial.print(" / alt : "); Serial.print(*alt);
-			Serial.print(" / out : "); Serial.print(VVIPID_Out);
+			Serial.print(" / out : "); Serial.print(hdingPID_Out);
 			Serial.println();
 			debugloop = 0;
+			
 		}
 		
 	} // End of "packet received?"
+
 	
 	// Read serial port for commands
 	int SCount = Serial.available();
 	if(SCount > 0) { //We got data
 		char in = Serial.read();
 		switch(in) {
-			case 'S':
-				Serial.read(); // Skip next char
+			case 'S':	// Set Speed
+				Serial.read();
 				speedPID_Target = Serial.parseFloat();
 				Serial.print("Setting speed target to : "); Serial.println(speedPID_Target);
 				break;
-			case 'V':
-				Serial.read(); // Skip next char
+			case 'V':	// Set VVI
+				Serial.read();
 				VVIPID_Target = Serial.parseFloat();
 				altPID.SetMode(MANUAL);
 				CLIMB_MODE = CLIMB_VVI;
 				Serial.print("Setting VVI target to : "); Serial.println(VVIPID_Target);
 				break;
-			case 'R':
-				Serial.read(); // Skip next char
-				rollPID_Target = Serial.parseFloat();
-				Serial.print("Setting roll target to : "); Serial.println(rollPID_Target);
-				break;
-			case 'A':
-				Serial.read(); // Skip next char
+			//case 'R':	// Set Roll
+			//	Serial.read();
+			//	rollPID_Target = Serial.parseFloat();
+			//	Serial.print("Setting roll target to : "); Serial.println(rollPID_Target);
+			//	break;
+			case 'A':	// Set Altitude
+				Serial.read();
 				altPID_Target = Serial.parseFloat();
 				altPID.SetMode(AUTOMATIC);
 				altPID.Compute();
@@ -276,23 +295,19 @@ void loop() {
 				CLIMB_MODE = CLIMB_ALT;
 				Serial.print("Setting alt target to : "); Serial.println(altPID_Target);
 				break;
-			//case 'H':
-			//	Serial.read();
-			// [ (Heading_target - (Heading_actual + 180)) MOD 360 ] -180
-				//float v = Serial.parseFloat();
-				//float diff = v - *hding;
-				//if diff > 180 then diff -= 360
-				//else if diff < -180 then diff += 360
-				// 0 > diff > 180 = turn right
-				// 0 < diff < -180 = turl left
-				// turn by diff°
-				//heading_diff = Serial.parseFloat() - (*hding - 180);
-				
-		}
-		
-		
-	}
-	
-}
+			case 'H':	// Set Heading
+				Serial.read(); // Skip next char
+				hding_vt = Serial.parseFloat();
+				Serial.print("Setting heading target to : "); Serial.println(hding_vt);
+				break;
+			case 'G':	// Toggle Gear (sending the "g" command jey, for testing purpose)
+				CharBuffer[5] = 'g';
+				udp.beginPacket(udp.remoteIP(), 49000);
+				udp.write((uint8_t*)CharBuffer, 6);
+				udp.endPacket();
+				break;
+		} // end of switch/case
+	} // end of if(serial data)
+} // end of loop
 
 

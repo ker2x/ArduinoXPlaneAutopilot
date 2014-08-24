@@ -25,6 +25,7 @@
 #define UDP_TX_PACKET_MAX_SIZE 1024
 char RXBuffer[UDP_TX_PACKET_MAX_SIZE];
 char TXBuffer[UDP_TX_PACKET_MAX_SIZE];
+char CharBuffer[6];
 
 char SBuffer[36]; // Receive buffer for serial port
 int debugloop = 0;
@@ -57,13 +58,14 @@ float rollPID_In, rollPID_Out;
 float rollPID_Target;
 
 float *hding;
-float hding_v, hding_cv, hding_diff;
+float hding_v, hding_vt;
 float hdingPID_In, hdingPID_Out;
 float hdingPID_Target;
 
 float *alt;
 float altPID_In, altPID_Out;
 float altPID_Target;
+
 
 typedef enum {
 	CLIMB_VVI,
@@ -72,23 +74,22 @@ typedef enum {
 	
 CLIMB_MODE_E CLIMB_MODE = CLIMB_VVI;
 
-/* VALUES FOR C337 SKYMASTER 
+/* VALUES FOR C337 SKYMASTER  */
 KerPID speedPID(&speedPID_In, &speedPID_Out, &speedPID_Target,0.01,0.05,0.002, DIRECT);
 //KerPID AoAPID(&AoAPID_In, &AoAPID_Out, &AoAPID_Target, 0.5, 1.0, 0.001, DIRECT);
 KerPID altPID(&altPID_In, &altPID_Out, &altPID_Target, 2.0, 0.01, 0.01, DIRECT);
-KerPID VVIPID(&VVIPID_In, &VVIPID_Out, &VVIPID_Target, 0.0005, 0.0005, 0.00001, DIRECT);
-KerPID rollPID(&rollPID_In, &rollPID_Out, &rollPID_Target, 0.006, 0.003, 0.0001, DIRECT);
-KerPID hdingPID(&hdingPID_In, &hdingPID_Out, &hdingPID_Target, 0.006, 0.0, 0.0, DIRECT);
-*/
+KerPID VVIPID(&VVIPID_In, &VVIPID_Out, &VVIPID_Target, 0.0005, 0.0005, 0.0001, DIRECT);
+KerPID rollPID(&rollPID_In, &rollPID_Out, &rollPID_Target, 0.006, 0.003, 0.002, DIRECT);
+KerPID hdingPID(&hdingPID_In, &hdingPID_Out, &hdingPID_Target, 0.2, 0.001, 0.0005, DIRECT);
 
-/* VALUES FOR C172SP */
+
+/* VALUES FOR C172SP 
 KerPID speedPID(&speedPID_In, &speedPID_Out, &speedPID_Target, 0.25, 0.1, 0.005, DIRECT);
 KerPID VVIPID(&VVIPID_In, &VVIPID_Out, &VVIPID_Target, 0.0002, 0.00015, 0.0001, DIRECT);
 KerPID altPID(&altPID_In, &altPID_Out, &altPID_Target, 1.0, 0.05, 0.0, DIRECT);
-
 KerPID rollPID(&rollPID_In, &rollPID_Out, &rollPID_Target, 0.01, 0.001, 0.001, DIRECT);
-KerPID hdingPID(&hdingPID_In, &hdingPID_Out, &hdingPID_Target, 0.006, 0.0, 0.0, DIRECT);
-
+KerPID hdingPID(&hdingPID_In, &hdingPID_Out, &hdingPID_Target, 0.2, 0.001, 0.0005, DIRECT);
+*/
  
 //-------------------------------------------------------------------
  
