@@ -66,6 +66,9 @@ float *alt;
 float altPID_In, altPID_Out;
 float altPID_Target;
 
+float *slip;
+float slipPID_In, slipPID_Out;
+float slipPID_Target;
 
 typedef enum {
 	CLIMB_VVI,
@@ -81,6 +84,7 @@ KerPID altPID(&altPID_In, &altPID_Out, &altPID_Target, 2.0, 0.01, 0.01, DIRECT);
 KerPID VVIPID(&VVIPID_In, &VVIPID_Out, &VVIPID_Target, 0.0005, 0.0005, 0.0001, DIRECT);
 KerPID rollPID(&rollPID_In, &rollPID_Out, &rollPID_Target, 0.006, 0.003, 0.002, DIRECT);
 KerPID hdingPID(&hdingPID_In, &hdingPID_Out, &hdingPID_Target, 0.2, 0.001, 0.0005, DIRECT);
+KerPID slipPID(&slipPID_In, &slipPID_Out, &slipPID_Target, 0.2, 0.1, 0.01, DIRECT);
 
 
 /* VALUES FOR C172SP 

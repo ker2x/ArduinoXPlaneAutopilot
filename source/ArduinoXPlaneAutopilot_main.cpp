@@ -134,6 +134,7 @@ void setup() {
 	roll  = (float*)&RXBuffer[85];
 	hding = (float*)&RXBuffer[93];
 	AoA   = (float*)&RXBuffer[117];
+	slip  = (float*)&RXBuffer[145];
 	alt   = (float*)&RXBuffer[173];
 	throttle = (float*)&RXBuffer[189];
 	
@@ -169,14 +170,20 @@ void setup() {
 	hdingPID.SetSampleTime(10);
 	hdingPID.SetControllerDirection(REVERSE);
 
+	// Slip PID
+	slipPID.SetMode(AUTOMATIC);
+	slipPID.SetOutputLimits(-1.0, 1.0);
+	slipPID.SetSampleTime(10);
+
 	// Setup Target
 	//AoAPID_Target = 2.5f;
 	speedPID_Target = 90.0f;
-	rollPID_Target = 0.0f;
-	VVIPID_Target = 0.0f;
-	altPID_Target = 5000.0f;
+	rollPID_Target  = 0.0f;
+	VVIPID_Target   = 0.0f;
+	altPID_Target   = 5000.0f;
 	hdingPID_Target = 0.0f;
 	hding_vt = 320.0f;
+	slipPID_Target  = 0.0f;
 
 }
 
@@ -228,6 +235,11 @@ void loop() {
 		rollPID_In = *roll;
 		rollPID.Compute();
 		
+		// Read & compute slip
+		slipPID_In = *slip;
+		slipPID.Compute();
+		
+		
 		// Copy thr 1 & 2 to TX Buffer
 		memcpy(&TXBuffer[9], &speedPID_Out, sizeof(speedPID_Out));
 		memcpy(&TXBuffer[13], &speedPID_Out, sizeof(speedPID_Out));
@@ -237,6 +249,10 @@ void loop() {
 
 		// Copy Roll to TX Buffer
 		memcpy(&TXBuffer[49], &rollPID_Out, sizeof(rollPID_Out));
+
+		// Copy rudder to TX Buffer
+		memcpy(&TXBuffer[53], &slipPID_Out, sizeof(slipPID_Out));
+
 
 		// Send packet \o/
 		if(sendPacket) {
@@ -253,9 +269,10 @@ void loop() {
 			Serial.print(" / throttle : "); Serial.print(*throttle);
 			Serial.print(" / AoA : "); Serial.print(*AoA);
 			Serial.print(" / roll : "); Serial.print(*roll);
+			Serial.print(" / slip : "); Serial.print(*slip);
 			Serial.print(" / heading : "); Serial.print(*hding);
 			Serial.print(" / alt : "); Serial.print(*alt);
-			Serial.print(" / out : "); Serial.print(hdingPID_Out);
+			Serial.print(" / out : "); Serial.print(slipPID_Out);
 			Serial.println();
 			debugloop = 0;
 			
