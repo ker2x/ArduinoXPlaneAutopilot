@@ -146,7 +146,7 @@ void setup() {
 
 	// ALT PID
 	altPID.SetMode(MANUAL);
-	altPID.SetOutputLimits(-2000.0, 2000.0);
+	altPID.SetOutputLimits(-1500.0, 1000.0);
 	altPID.SetSampleTime(10);
 
 	// VVI PID
@@ -177,13 +177,14 @@ void setup() {
 
 	// Setup Target
 	//AoAPID_Target = 2.5f;
-	speedPID_Target = 90.0f;
+	speedPID_Target = 120.0f;
 	rollPID_Target  = 0.0f;
 	VVIPID_Target   = 0.0f;
 	altPID_Target   = 5000.0f;
 	hdingPID_Target = 0.0f;
 	hding_vt = 320.0f;
 	slipPID_Target  = 0.0f;
+	elev_Target	= 0.0f;
 
 }
 
@@ -216,8 +217,12 @@ void loop() {
 			//Serial.println(altPID_Out);
 			//Serial.println();
 		}
+		
 		VVIPID_In = *VVI;
 		VVIPID.Compute();
+		elev_Target = VVIPID_Out;
+		elevServo.SetTarget(elev_Target);
+		elev = elevServo.Compute();
 
 		// Read & compute heading
 		hding_v = fmod(hding_vt - *hding + 180.0f, 360.0f)  - 180.0f;
@@ -234,6 +239,9 @@ void loop() {
 		// Read & compute roll
 		rollPID_In = *roll;
 		rollPID.Compute();
+		ailrn_Target = rollPID_Out;
+		ailrnServo.SetTarget(ailrn_Target);
+		ailrn = ailrnServo.Compute();
 		
 		// Read & compute slip
 		slipPID_In = *slip;
@@ -245,10 +253,10 @@ void loop() {
 		memcpy(&TXBuffer[13], &speedPID_Out, sizeof(speedPID_Out));
 		
 		// Copy pitch to TX Buffer
-		memcpy(&TXBuffer[45], &VVIPID_Out, sizeof(VVIPID_Out));
+		memcpy(&TXBuffer[45], &elev, sizeof(float));
 
 		// Copy Roll to TX Buffer
-		memcpy(&TXBuffer[49], &rollPID_Out, sizeof(rollPID_Out));
+		memcpy(&TXBuffer[49], &ailrn, sizeof(rollPID_Out));
 
 		// Copy rudder to TX Buffer
 		memcpy(&TXBuffer[53], &slipPID_Out, sizeof(slipPID_Out));
@@ -272,7 +280,7 @@ void loop() {
 			Serial.print(" / slip : "); Serial.print(*slip);
 			Serial.print(" / heading : "); Serial.print(*hding);
 			Serial.print(" / alt : "); Serial.print(*alt);
-			Serial.print(" / out : "); Serial.print(slipPID_Out);
+			Serial.print(" / out : "); Serial.print(elev);
 			Serial.println();
 			debugloop = 0;
 			

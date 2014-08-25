@@ -16,6 +16,7 @@
 #include <SPI.h>
 
 #include "kerpid.h"
+#include "linearservo.h"
  
 //-------------------------------------------------------------------
  
@@ -44,7 +45,7 @@ float *speed, *throttle;
 float speedPID_In, speedPID_Out;
 float speedPID_Target;
 
-float *AoA, *elev;
+float *AoA; //, *elev;
 //float AoAPID_In, AoAPID_Out;
 //float AoAPID_Target;
 
@@ -77,12 +78,26 @@ typedef enum {
 	
 CLIMB_MODE_E CLIMB_MODE = CLIMB_VVI;
 
-/* VALUES FOR C337 SKYMASTER  */
+float elev, elev_Target;
+LinearServo elevServo(0.025);
+
+float ailrn, ailrn_Target;
+LinearServo ailrnServo(0.025);
+
+
+/* VALUES FOR C337 SKYMASTER
 KerPID speedPID(&speedPID_In, &speedPID_Out, &speedPID_Target,0.01,0.05,0.002, DIRECT);
 //KerPID AoAPID(&AoAPID_In, &AoAPID_Out, &AoAPID_Target, 0.5, 1.0, 0.001, DIRECT);
 KerPID altPID(&altPID_In, &altPID_Out, &altPID_Target, 2.0, 0.01, 0.001, DIRECT);
 KerPID VVIPID(&VVIPID_In, &VVIPID_Out, &VVIPID_Target, 0.0005, 0.0004, 0.0001, DIRECT);
 KerPID rollPID(&rollPID_In, &rollPID_Out, &rollPID_Target, 0.008, 0.004, 0.002, DIRECT);
+KerPID hdingPID(&hdingPID_In, &hdingPID_Out, &hdingPID_Target, 0.2, 0.001, 0.0005, DIRECT);
+KerPID slipPID(&slipPID_In, &slipPID_Out, &slipPID_Target, 0.1, 0.05, 0.005, DIRECT);
+*/
+KerPID speedPID(&speedPID_In, &speedPID_Out, &speedPID_Target,0.01,0.05,0.002, DIRECT);
+KerPID altPID(&altPID_In, &altPID_Out, &altPID_Target, 2.0, 0.01, 0.001, DIRECT);
+KerPID VVIPID(&VVIPID_In, &VVIPID_Out, &VVIPID_Target, 0.0004, 0.0003, 0.00005, DIRECT);
+KerPID rollPID(&rollPID_In, &rollPID_Out, &rollPID_Target, 0.008, 0.004, 0.001, DIRECT);
 KerPID hdingPID(&hdingPID_In, &hdingPID_Out, &hdingPID_Target, 0.2, 0.001, 0.0005, DIRECT);
 KerPID slipPID(&slipPID_In, &slipPID_Out, &slipPID_Target, 0.1, 0.05, 0.005, DIRECT);
 
