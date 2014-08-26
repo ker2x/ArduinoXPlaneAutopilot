@@ -23,7 +23,7 @@
 //-------------------------------------------------------------------
  
 // Put your declarations here
-#define UDP_TX_PACKET_MAX_SIZE 1024
+#define UDP_TX_PACKET_MAX_SIZE 256
 char RXBuffer[UDP_TX_PACKET_MAX_SIZE];
 char TXBuffer[UDP_TX_PACKET_MAX_SIZE];
 char CharBuffer[6];
@@ -85,15 +85,7 @@ float ailrn, ailrn_Target;
 LinearServo ailrnServo(0.025);
 
 
-/* VALUES FOR C337 SKYMASTER
-KerPID speedPID(&speedPID_In, &speedPID_Out, &speedPID_Target,0.01,0.05,0.002, DIRECT);
-//KerPID AoAPID(&AoAPID_In, &AoAPID_Out, &AoAPID_Target, 0.5, 1.0, 0.001, DIRECT);
-KerPID altPID(&altPID_In, &altPID_Out, &altPID_Target, 2.0, 0.01, 0.001, DIRECT);
-KerPID VVIPID(&VVIPID_In, &VVIPID_Out, &VVIPID_Target, 0.0005, 0.0004, 0.0001, DIRECT);
-KerPID rollPID(&rollPID_In, &rollPID_Out, &rollPID_Target, 0.008, 0.004, 0.002, DIRECT);
-KerPID hdingPID(&hdingPID_In, &hdingPID_Out, &hdingPID_Target, 0.2, 0.001, 0.0005, DIRECT);
-KerPID slipPID(&slipPID_In, &slipPID_Out, &slipPID_Target, 0.1, 0.05, 0.005, DIRECT);
-*/
+/* VALUES FOR C337 SKYMASTER */
 KerPID speedPID(&speedPID_In, &speedPID_Out, &speedPID_Target,0.01,0.05,0.002, DIRECT);
 KerPID altPID(&altPID_In, &altPID_Out, &altPID_Target, 2.0, 0.01, 0.001, DIRECT);
 KerPID VVIPID(&VVIPID_In, &VVIPID_Out, &VVIPID_Target, 0.0004, 0.0003, 0.00005, DIRECT);
@@ -102,12 +94,22 @@ KerPID hdingPID(&hdingPID_In, &hdingPID_Out, &hdingPID_Target, 0.2, 0.001, 0.000
 KerPID slipPID(&slipPID_In, &slipPID_Out, &slipPID_Target, 0.1, 0.05, 0.005, DIRECT);
 
 
-/* VALUES FOR C172SP 
+/* VALUES FOR C172SP (NEED UPDATE)
 KerPID speedPID(&speedPID_In, &speedPID_Out, &speedPID_Target, 0.25, 0.1, 0.005, DIRECT);
 KerPID VVIPID(&VVIPID_In, &VVIPID_Out, &VVIPID_Target, 0.0002, 0.00015, 0.0001, DIRECT);
 KerPID altPID(&altPID_In, &altPID_Out, &altPID_Target, 1.0, 0.05, 0.0, DIRECT);
 KerPID rollPID(&rollPID_In, &rollPID_Out, &rollPID_Target, 0.01, 0.001, 0.001, DIRECT);
 KerPID hdingPID(&hdingPID_In, &hdingPID_Out, &hdingPID_Target, 0.2, 0.001, 0.0005, DIRECT);
+KerPID slipPID(&slipPID_In, &slipPID_Out, &slipPID_Target, 0.1, 0.05, 0.005, DIRECT);
+*/
+
+/* Values for 777 Jardesign : NOT WORKING (yet)
+KerPID speedPID(&speedPID_In, &speedPID_Out, &speedPID_Target, 0.25, 0.1, 0.005, DIRECT);
+KerPID VVIPID(&VVIPID_In, &VVIPID_Out, &VVIPID_Target, 0.00005, 0.00001, 0.00001, DIRECT);
+KerPID altPID(&altPID_In, &altPID_Out, &altPID_Target, 1.0, 0.05, 0.0, DIRECT);
+KerPID rollPID(&rollPID_In, &rollPID_Out, &rollPID_Target, 0.01, 0.001, 0.001, DIRECT);
+KerPID hdingPID(&hdingPID_In, &hdingPID_Out, &hdingPID_Target, 0.2, 0.001, 0.0005, DIRECT);
+KerPID slipPID(&slipPID_In, &slipPID_Out, &slipPID_Target, 0.1, 0.05, 0.005, DIRECT);
 */
  
 //-------------------------------------------------------------------
@@ -122,6 +124,9 @@ KerPID hdingPID(&hdingPID_In, &hdingPID_Out, &hdingPID_Target, 0.2, 0.001, 0.000
 //		simply delete the lines below, with "&MM_DECLA" text
 //===================================================================
 //---- DO NOT DELETE THIS LINE -- @MM_DECLA_BEG@---------------------
+int freeRam ();
+void setupBuffer();
+void setupPID();
 void loop();
 void setup();
 //---- DO NOT DELETE THIS LINE -- @MM_DECLA_END@---------------------
